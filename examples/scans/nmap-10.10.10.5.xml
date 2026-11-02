@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nmaprun scanner="nmap" args="nmap -sC -sV -oX nmap-10.10.10.5.xml 10.10.10.5" start="1762060000" version="7.95">
+<host starttime="1762060001" endtime="1762060090"><status state="up" reason="echo-reply"/>
+<address addr="10.10.10.5" addrtype="ipv4"/>
+<hostnames><hostname name="web01.acme.htb" type="PTR"/></hostnames>
+<ports>
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack"/><service name="ssh" product="OpenSSH" version="8.2p1 Ubuntu 4ubuntu0.5" extrainfo="Ubuntu Linux; protocol 2.0"/></port>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack"/><service name="http" product="Apache httpd" version="2.4.41" extrainfo="(Ubuntu)"/>
+<script id="http-title" output="Acme Corp Intranet"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack"/><service name="microsoft-ds" product="Samba smbd" version="4.6.2"/>
+<script id="smb-vuln-cve-2017-7494" output="&#xa;  VULNERABLE:&#xa;  SambaCry remote code execution&#xa;    State: VULNERABLE&#xa;    IDs:  CVE:CVE-2017-7494&#xa;    Risk factor: High  CVSSv2: 10.0&#xa;    References:&#xa;      https://www.samba.org/samba/security/CVE-2017-7494.html"/></port>
+<port protocol="tcp" portid="3306"><state state="open" reason="syn-ack"/><service name="mysql" product="MySQL" version="5.7.33"/></port>
+<port protocol="tcp" portid="8080"><state state="closed" reason="reset"/><service name="http-proxy"/></port>
+</ports></host>
+<runstats><finished time="1762060090" elapsed="90"/><hosts up="1" down="0" total="1"/></runstats>
+</nmaprun>

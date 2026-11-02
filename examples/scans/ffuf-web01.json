@@ -1,0 +1,7 @@
+{"commandline":"ffuf -u http://10.10.10.5/FUZZ -w common.txt -of json -o ffuf-web01.json","time":"2026-11-02T10:20:00Z","results":[
+{"input":{"FUZZ":".git/HEAD"},"position":1,"status":200,"length":23,"words":2,"lines":2,"url":"http://10.10.10.5/.git/HEAD","host":"10.10.10.5"},
+{"input":{"FUZZ":"admin"},"position":2,"status":301,"length":310,"words":20,"lines":10,"url":"http://10.10.10.5/admin","host":"10.10.10.5"},
+{"input":{"FUZZ":"backup.zip"},"position":3,"status":200,"length":48211,"words":190,"lines":160,"url":"http://10.10.10.5/backup.zip","host":"10.10.10.5"},
+{"input":{"FUZZ":"index.php"},"position":4,"status":200,"length":5120,"words":400,"lines":90,"url":"http://10.10.10.5/index.php","host":"10.10.10.5"},
+{"input":{"FUZZ":"server-status"},"position":5,"status":403,"length":277,"words":20,"lines":10,"url":"http://10.10.10.5/server-status","host":"10.10.10.5"}
+],"config":{}}
