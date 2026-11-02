@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pwntrail"
+version = "0.1.0"
+description = "Record your pentest while you hack. Get the evidence timeline and the report for free."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [{ name = "BEwork", email = "beworkall07@gmail.com" }]
+keywords = ["pentest", "pentesting", "red-team", "report", "forensics", "evidence", "kali", "nmap", "nuclei", "ffuf"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: System Administrators",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.0",
+  "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+pdf = ["weasyprint>=60"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+pwntrail = "pwntrail.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/beworkall/pwntrail"
+Issues = "https://github.com/beworkall/pwntrail/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pwntrail"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
