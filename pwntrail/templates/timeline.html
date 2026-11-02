@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ name }} · PwnTrail timeline</title>
+<style>
+  :root {
+    --bg: {{ t.bg }}; --panel: {{ t.panel }}; --panel2: {{ t.panel2 }}; --border: {{ t.border }};
+    --text: {{ t.text }}; --muted: {{ t.muted }}; --accent: {{ t.accent }}; --code-bg: {{ t.code_bg }};
+    --code-text: {{ t.code_text }}; --crit: {{ t.critical }}; --high: {{ t.high }}; --med: {{ t.medium }};
+    --low: {{ t.low }}; --ok: #2ecc71;
+  }
+  :root[data-theme="light"] {
+    --bg: {{ tl.bg }}; --panel: {{ tl.panel }}; --panel2: {{ tl.panel2 }}; --border: {{ tl.border }};
+    --text: {{ tl.text }}; --muted: {{ tl.muted }}; --accent: {{ tl.accent }}; --code-bg: {{ tl.code_bg }};
+    --code-text: {{ tl.code_text }}; --crit: {{ tl.critical }}; --high: {{ tl.high }}; --med: {{ tl.medium }};
+    --low: {{ tl.low }}; --ok: #1e9e57;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.5 Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+  .mono, code, pre { font-family: "JetBrains Mono", "Fira Code", ui-monospace, Consolas, monospace; }
+  header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent);
+           backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+  .top { display: flex; align-items: center; gap: 12px; padding: 14px 0 10px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: 1.5px; font-size: 12px;
+          text-transform: uppercase; color: var(--muted); }
+  .logo i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); display: inline-block;
+            box-shadow: 0 0 10px var(--accent); }
+  h1 { font-size: 18px; margin: 0; }
+  .spacer { flex: 1; }
+  .badge { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); }
+  .badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+  .badge.bad { color: var(--crit); border-color: var(--crit); }
+  button.theme { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px;
+                 padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+  .stats { display: flex; gap: 18px; font-size: 12px; color: var(--muted); padding-bottom: 10px; flex-wrap: wrap; }
+  .stats b { color: var(--text); font-size: 14px; margin-right: 4px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 0 12px; align-items: center; }
+  .filters input, .filters select { background: var(--panel); border: 1px solid var(--border); color: var(--text);
+          border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13px; }
+  .filters input { flex: 1 1 220px; min-width: 0; }
+  .chip { font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: transparent;
+          color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; user-select: none; }
+  .chip.on { background: var(--panel); color: var(--text); border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+
+  main { padding: 18px 0 80px; }
+  .day { margin: 22px 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .tl { position: relative; padding-left: 26px; }
+  .tl::before { content: ""; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+  .item { position: relative; margin: 0 0 10px; }
+  .item .dot { position: absolute; left: -24px; top: 12px; width: 12px; height: 12px; border-radius: 50%;
+               background: var(--muted); border: 2px solid var(--bg); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+  .meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .meta .time { font-variant-numeric: tabular-nums; }
+  .tag { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--panel2); border: 1px solid var(--border); }
+  .tag.t { cursor: pointer; }
+  .exit { font-size: 11px; padding: 1px 7px; border-radius: 6px; }
+  .exit.ok { color: var(--ok); } .exit.bad { color: var(--crit); background: color-mix(in srgb, var(--crit) 12%, transparent); }
+  .cmd { margin-top: 6px; font-size: 13px; color: var(--code-text); word-break: break-word; white-space: pre-wrap; }
+  .cmd .p { color: var(--accent); font-weight: 700; margin-right: 6px; }
+  details { margin-top: 6px; }
+  summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+  pre { margin: 8px 0 0; background: var(--code-bg); color: var(--code-text); border: 1px solid var(--border);
+        border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.45; max-height: 460px; overflow: auto;
+        white-space: pre-wrap; word-break: break-word; }
+  .text { margin-top: 4px; }
+  .item.note .dot { background: var(--low); }
+  .item.shot .dot { background: #a66bff; }
+  .item.import .dot { background: var(--med); }
+  .item.scope_block .dot, .item.scope_override .dot { background: var(--crit); }
+  .item.scope_override .card { border-color: color-mix(in srgb, var(--high) 60%, var(--border)); }
+  .item.scope_block .card { border-color: color-mix(in srgb, var(--crit) 50%, var(--border)); }
+  .item.session_start .dot, .item.session_end .dot { background: var(--accent); }
+  .item.session_start .card, .item.session_end .card { background: transparent; border-style: dashed; padding: 6px 12px; }
+  .item.command .dot { background: var(--text); }
+  .item.command.fail .dot { background: var(--crit); }
+  img.thumb { margin-top: 8px; max-width: 100%; max-height: 280px; border-radius: 8px; border: 1px solid var(--border); cursor: zoom-in; display: block; }
+  .lb { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; cursor: zoom-out; }
+  .lb.open { display: flex; }
+  .lb img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; }
+  .hash { font-size: 10px; color: var(--muted); word-break: break-all; }
+  mark { background: color-mix(in srgb, var(--med) 45%, transparent); color: inherit; border-radius: 2px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 40px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="logo"><i></i>PwnTrail</div>
+      <h1 id="title"></h1>
+      <span class="spacer"></span>
+      <span id="integrity" class="badge"></span>
+      <button class="theme" id="themeBtn" type="button">Light</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Search commands, output, notes…" autocomplete="off">
+      <select id="target"><option value="">All targets</option></select>
+      <select id="tool"><option value="">All tools</option></select>
+    </div>
+    <div class="filters" id="types"></div>
+  </div>
+</header>
+<main class="wrap"><div id="list"></div></main>
+<footer id="foot"></footer>
+<div class="lb" id="lb"><img alt=""></div>
+
+<script id="data" type="application/json">{{ data_json|safe }}</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  // theme (remembered per viewer when storage is available)
+  const root = document.documentElement;
+  let theme = "dark";
+  try { theme = localStorage.getItem("pwntrail-theme") || "{{ theme }}"; } catch (e) { theme = "{{ theme }}"; }
+  const applyTheme = () => { root.dataset.theme = theme; $("themeBtn").textContent = theme === "dark" ? "Light" : "Dark"; };
+  applyTheme();
+  $("themeBtn").onclick = () => { theme = theme === "dark" ? "light" : "dark"; applyTheme();
+    try { localStorage.setItem("pwntrail-theme", theme); } catch (e) {} };
+
+  $("title").textContent = D.name + (D.client && D.client !== D.name ? " · " + D.client : "");
+  const ib = $("integrity");
+  ib.textContent = D.integrity ? "✔ evidence intact" : "✖ evidence modified";
+  ib.className = "badge " + (D.integrity ? "ok" : "bad");
+  ib.title = D.integrity ? "Every hash in the chain of custody matches" : D.problems.join("\n");
+
+  const count = (t) => D.items.filter((i) => i.type === t).length;
+  $("stats").innerHTML =
+    `<span><b>${count("command")}</b>commands</span><span><b>${count("note")}</b>notes</span>` +
+    `<span><b>${count("shot")}</b>screenshots</span><span><b>${count("import")}</b>imports</span>` +
+    `<span><b>${D.findings}</b>findings</span>` +
+    `<span><b>${count("scope_block") + count("scope_override")}</b>scope alerts</span>` +
+    (D.scope.length ? `<span>scope: <span class="mono">${esc(D.scope.join(", "))}</span></span>` : "");
+  $("foot").textContent = `Generated ${D.generated} · PwnTrail v${D.version}`;
+
+  const TYPES = [["command","Commands"],["note","Notes"],["shot","Screenshots"],["import","Imports"],["scope","Scope alerts"],["session","Sessions"]];
+  const on = new Set(TYPES.map((t) => t[0]));
+  $("types").innerHTML = TYPES.map(([k, l]) => `<button type="button" class="chip on" data-k="${k}">${l}</button>`).join("");
+  $("types").onclick = (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const k = b.dataset.k; on.has(k) ? on.delete(k) : on.add(k); b.classList.toggle("on"); render();
+  };
+  const group = (t) => t.startsWith("scope") ? "scope" : t.startsWith("session") ? "session" : t;
+
+  const targets = [...new Set(D.items.flatMap((i) => i.targets || []))].sort();
+  const tools = [...new Set(D.items.filter((i) => i.tool).map((i) => i.tool))].sort();
+  $("target").innerHTML += targets.map((t) => `<option>${esc(t)}</option>`).join("");
+  $("tool").innerHTML += tools.map((t) => `<option>${esc(t)}</option>`).join("");
+  ["q", "target", "tool"].forEach((id) => $(id).addEventListener("input", render));
+
+  const hl = (s, q) => {
+    const e = esc(s); if (!q) return e;
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    return e.replace(rx, (m) => `<mark>${m}</mark>`);
+  };
+
+  const LABEL = { note: "Note", shot: "Screenshot", import: "Import", scope_block: "Scope guard · blocked",
+                  scope_override: "Scope guard · allowed", session_start: "Session", session_end: "Session" };
+
+  function card(i, q) {
+    const tg = (i.targets || []).map((t) => `<span class="tag t mono" data-t="${esc(t)}">${esc(t)}</span>`).join("");
+    if (i.type === "command") {
+      const fail = i.exit !== null && i.exit !== 0;
+      const ex = i.exit === null ? "" : `<span class="exit ${fail ? "bad" : "ok"}">exit ${i.exit}</span>`;
+      const out = i.output ? `<details${q && i.output.toLowerCase().includes(q.toLowerCase()) ? " open" : ""}>
+          <summary>output · ${i.output.split("\n").length} lines${i.truncated ? " (shortened)" : ""}</summary>
+          <pre>${hl(i.output, q)}</pre></details>` : "";
+      return `<div class="item command${fail ? " fail" : ""}"><span class="dot"></span><div class="card">
+        <div class="meta"><span class="time">${esc(i.time)}</span><span class="tag mono">#${i.id}</span>
+        ${i.tool ? `<span class="tag mono">${esc(i.tool)}</span>` : ""}${tg}${ex}
+        <span class="mono" title="${esc(i.cwd)}">${esc((i.cwd || "").split("/").slice(-2).join("/"))}</span></div>
+        <div class="cmd mono"><span class="p">$</span>${hl(i.command, q)}</div>${out}</div></div>`;
+    }
+    const img = i.type === "shot" && i.src ? `<img class="thumb" src="${i.src}" alt="screenshot ${i.id}">` : "";
+    const hash = i.sha ? `<div class="hash mono">sha256 ${esc(i.sha)}</div>` : "";
+    return `<div class="item ${esc(i.type)}"><span class="dot"></span><div class="card">
+      <div class="meta"><span class="time">${esc(i.time)}</span><b>${LABEL[i.type] || esc(i.type)}</b>${tg}</div>
+      ${i.text ? `<div class="text">${hl(i.text, q)}</div>` : ""}${img}${hash}</div></div>`;
+  }
+
+  function render() {
+    const q = $("q").value.trim(), tgt = $("target").value, tool = $("tool").value;
+    const ql = q.toLowerCase();
+    const rows = D.items.filter((i) => {
+      if (!on.has(group(i.type))) return false;
+      if (tgt && !(i.targets || []).includes(tgt)) return false;
+      if (tool && i.tool !== tool) return false;
+      if (ql) {
+        const hay = [i.command, i.output, i.text, (i.targets || []).join(" ")].join("\n").toLowerCase();
+        if (!hay.includes(ql)) return false;
+      }
+      return true;
+    });
+    if (!rows.length) { $("list").innerHTML = `<div class="empty">Nothing matches.</div>`; return; }
+    let html = "", day = "";
+    for (const i of rows) {
+      if (i.day !== day) { if (day) html += "</div>"; day = i.day; html += `<div class="day">${esc(day)}</div><div class="tl">`; }
+      html += card(i, q);
+    }
+    $("list").innerHTML = html + "</div>";
+  }
+
+  $("list").addEventListener("click", (e) => {
+    const t = e.target.closest(".tag.t");
+    if (t) { $("target").value = t.dataset.t; render(); return; }
+    const img = e.target.closest("img.thumb");
+    if (img) { $("lb").querySelector("img").src = img.src; $("lb").classList.add("open"); }
+  });
+  $("lb").onclick = () => $("lb").classList.remove("open");
+  render();
+})();
+</script>
+</body>
+</html>

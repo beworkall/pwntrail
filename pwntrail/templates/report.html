@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ client }} · Penetration Test Report</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 16mm 20mm 16mm;
+    background: {{ t.bg }};
+    @top-left { content: "{{ client }} · Penetration Test Report"; font: 8pt sans-serif; color: {{ t.muted }}; }
+    @top-right { content: "CONFIDENTIAL"; font: 700 8pt sans-serif; letter-spacing: 1.5pt; color: {{ t.accent }}; }
+    @bottom-left { content: "Generated with PwnTrail v{{ version }}"; font: 8pt sans-serif; color: {{ t.muted }}; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 8pt sans-serif; color: {{ t.muted }}; }
+  }
+  @page cover { margin: 0; @top-left { content: none; } @top-right { content: none; }
+                @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  * { box-sizing: border-box; }
+  html, body { background: {{ t.bg }}; color: {{ t.text }}; }
+  body {
+    margin: 0;
+    font-family: Inter, "Segoe UI", "Helvetica Neue", "DejaVu Sans", Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.55;
+  }
+  .page { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+  @media screen { .page { padding: 32px 20px 64px; } }
+  h1, h2, h3, h4 { line-height: 1.25; margin: 0; font-weight: 700; }
+  h2.section {
+    font-size: 17pt; margin: 0 0 14px; padding-top: 4px;
+    border-bottom: 2px solid {{ t.accent }}; padding-bottom: 8px; display: block;
+  }
+  section { margin: 0 0 34px; }
+  section.break { page-break-before: always; break-before: page; }
+  p { margin: 0 0 10px; }
+  a { color: {{ t.accent }}; text-decoration: none; word-break: break-all; }
+  .muted { color: {{ t.muted }}; }
+  .mono, code, pre { font-family: "JetBrains Mono", "Fira Code", "DejaVu Sans Mono", Consolas, monospace; }
+  code { font-size: 9pt; background: {{ t.code_bg }}; padding: 1px 5px; border-radius: 4px; color: {{ t.code_text }}; }
+  pre {
+    font-size: 8.3pt; line-height: 1.45; background: {{ t.code_bg }}; color: {{ t.code_text }};
+    border: 1px solid {{ t.border }}; border-radius: 6px; padding: 10px 12px; margin: 6px 0 10px;
+    white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere;
+  }
+  pre .prompt { color: {{ t.accent }}; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 4px 0 12px; }
+  th { text-align: left; font-weight: 600; color: {{ t.muted }}; font-size: 7.8pt; text-transform: uppercase;
+       letter-spacing: .6pt; border-bottom: 1px solid {{ t.border }}; padding: 6px 8px; }
+  td { border-bottom: 1px solid {{ t.border }}; padding: 6px 8px; vertical-align: top; }
+  tr { page-break-inside: avoid; }
+  .card { background: {{ t.panel }}; border: 1px solid {{ t.border }}; border-radius: 8px; padding: 14px 16px; }
+
+  /* cover */
+  .cover {
+    page: cover; background: {{ t.bg }}; min-height: 297mm; padding: 34mm 22mm 24mm;
+    position: relative; page-break-after: always; break-after: page;
+  }
+  @media screen { .cover { min-height: auto; padding: 56px 24px 64px; border-bottom: 1px solid {{ t.border }}; } }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 2pt;
+           font-size: 10pt; color: {{ t.muted }}; text-transform: uppercase; }
+  .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: {{ t.accent }}; display: inline-block; }
+  .brand img { max-height: 40px; max-width: 180px; }
+  .cover .kicker { margin-top: 70mm; color: {{ t.accent }}; font-weight: 700; letter-spacing: 3pt;
+                   text-transform: uppercase; font-size: 10pt; }
+  @media screen { .cover .kicker { margin-top: 90px; } }
+  .cover h1 { font-size: 34pt; margin: 10px 0 6px; letter-spacing: -0.5pt; }
+  .cover .client { font-size: 15pt; color: {{ t.muted }}; }
+  .cover .meta { margin-top: 44px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 30px;
+                 font-size: 9.5pt; max-width: 520px; }
+  .cover .meta div span { display: block; color: {{ t.muted }}; font-size: 7.6pt; text-transform: uppercase;
+                          letter-spacing: 1pt; margin-bottom: 2px; }
+  .cover .risk { margin-top: 36px; display: inline-block; padding: 8px 14px; border-radius: 6px;
+                 border: 1px solid {{ t.border }}; background: {{ t.panel }}; font-size: 9.5pt; }
+  .cover .conf { margin-top: 60mm; font-size: 8pt; color: {{ t.muted }};
+                 border-top: 1px solid {{ t.border }}; padding-top: 10px; max-width: 160mm; }
+  @media screen { .cover .conf { margin-top: 48px; } }
+
+  /* severity */
+  .sev { display: inline-block; font-size: 7.6pt; font-weight: 800; letter-spacing: .8pt; text-transform: uppercase;
+         padding: 2px 8px; border-radius: 4px; color: {{ t.on_sev }}; white-space: nowrap; }
+  {% for s in severities %}
+  .sev-{{ s }} { background: {{ t[s] }}; }
+  .bar-{{ s }} { background: {{ t[s] }}; }
+  .bl-{{ s }} { border-left: 4px solid {{ t[s] }}; }
+  .tx-{{ s }} { color: {{ t[s] }}; }
+  {% endfor %}
+  .tiles { display: flex; gap: 10px; margin: 6px 0 16px; }
+  .tile { flex: 1; background: {{ t.panel }}; border: 1px solid {{ t.border }}; border-radius: 8px; padding: 12px 12px 10px;
+          border-top-width: 3px; }
+  .tile .n { font-size: 22pt; font-weight: 800; line-height: 1; }
+  .tile .l { font-size: 7.8pt; text-transform: uppercase; letter-spacing: .8pt; color: {{ t.muted }}; margin-top: 6px; }
+  .dist { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: {{ t.border }}; margin: 0 0 18px; }
+  .dist div { height: 100%; }
+
+  /* findings */
+  .finding { margin: 0 0 30px; padding-bottom: 22px; border-bottom: 1px dashed {{ t.border }}; }
+  .finding:last-child { border-bottom: 0; }
+  .finding h4, .fhead { page-break-after: avoid; break-after: avoid; }
+  .fhead { page-break-inside: avoid; break-inside: avoid; }
+  .desc { white-space: pre-line; }
+  .fhead { padding: 12px 16px; background: {{ t.panel }}; border: 1px solid {{ t.border }}; border-radius: 8px;
+           margin-bottom: 14px; }
+  .fhead .ref { color: {{ t.muted }}; font-weight: 700; font-size: 9pt; letter-spacing: .5pt; }
+  .fhead h3 { font-size: 15pt; margin: 4px 0 10px; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 18px; font-size: 9pt; }
+  .facts .lbl { display: block; color: {{ t.muted }}; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .8pt; }
+  .facts b { font-weight: 600; word-break: break-all; }
+  h4 { font-size: 10pt; text-transform: uppercase; letter-spacing: 1pt; color: {{ t.muted }}; margin: 16px 0 6px; }
+  .fix { background: {{ t.panel }}; border-left: 3px solid {{ t.accent }}; padding: 10px 14px; border-radius: 0 6px 6px 0; }
+  .evhead { font-size: 8.4pt; color: {{ t.muted }}; margin-top: 8px; }
+  .shot { margin: 8px 0 12px; border: 1px solid {{ t.border }}; border-radius: 6px; padding: 6px; background: {{ t.panel2 }}; }
+  .shot img { width: 100%; border-radius: 4px; display: block; }
+  .shot .cap { font-size: 8pt; color: {{ t.muted }}; margin-top: 4px; }
+  ul.plain { margin: 0; padding-left: 18px; }
+  ul.plain li { margin: 2px 0; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .chip { display: inline-block; border: 1px solid {{ t.border }}; background: {{ t.panel }}; border-radius: 999px;
+          padding: 2px 10px; margin: 0 6px 6px 0; font-size: 8.6pt; }
+  .ok { color: #2ecc71; font-weight: 700; }
+  .bad { color: {{ t.critical }}; font-weight: 700; }
+  .hash { font-family: "DejaVu Sans Mono", monospace; font-size: 7.6pt; word-break: break-all; color: {{ t.muted }}; }
+  .small { font-size: 8.4pt; }
+  @media screen and (max-width: 640px) {
+    .tiles { flex-wrap: wrap; } .tile { flex: 1 1 40%; }
+    .facts, .twocol, .cover .meta { grid-template-columns: 1fr; }
+    table { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="brand">
+    {% if logo %}<img src="{{ logo }}" alt="">{% else %}<span class="dot"></span>{{ company or "PwnTrail" }}{% endif %}
+  </div>
+  <div class="kicker">Penetration Test Report</div>
+  <h1>{{ name }}</h1>
+  <div class="client">{{ client }}</div>
+  <div class="meta">
+    <div><span>Engagement window</span>{{ first_activity|dt("%d %b %Y") or "n/a" }} → {{ last_activity|dt("%d %b %Y") or "n/a" }}</div>
+    <div><span>Report generated</span>{{ generated|dt("%d %b %Y %H:%M") }}</div>
+    <div><span>Tester</span>{{ tester or "n/a" }}</div>
+    <div><span>Prepared by</span>{{ company or tester or "n/a" }}</div>
+  </div>
+  <div class="risk">Overall risk&nbsp;&nbsp;<span class="sev sev-{{ overall }}">{{ sev_label[overall] }}</span>
+    &nbsp;&nbsp;<span class="muted">{{ total_findings }} finding{{ "s" if total_findings != 1 }}</span></div>
+  <div class="conf">CONFIDENTIAL. This document contains security-sensitive information about {{ client }}.
+    Distribute only to authorised recipients.</div>
+</div>
+
+<div class="page">
+
+<!-- ============ EXEC SUMMARY ============ -->
+<section>
+  <h2 class="section">1. Executive summary</h2>
+  {% for p in summary %}<p>{{ p }}</p>{% endfor %}
+
+  <div class="tiles">
+  {% for s in severities %}
+    <div class="tile" style="border-top-color: {{ t[s] }}">
+      <div class="n tx-{{ s }}">{{ sev_counts[s] }}</div>
+      <div class="l">{{ sev_label[s] }}</div>
+    </div>
+  {% endfor %}
+  </div>
+  {% if total_findings %}
+  <div class="dist">
+    {% for s in severities %}{% if sev_counts[s] %}<div class="bar-{{ s }}" style="width: {{ (sev_counts[s] / total_findings * 100)|round(2) }}%"></div>{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if findings %}
+  <table>
+    <thead><tr><th style="width:52px">Ref</th><th>Finding</th><th style="width:150px">Target</th><th style="width:82px">Severity</th></tr></thead>
+    <tbody>
+    {% for f in findings %}
+      <tr><td class="mono">{{ f.ref }}</td><td>{{ f.title }}</td><td class="mono small">{{ f.target }}</td>
+          <td><span class="sev sev-{{ f.severity }}">{{ sev_label[f.severity] }}</span></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+<!-- ============ SCOPE ============ -->
+<section>
+  <h2 class="section">2. Scope &amp; approach</h2>
+  <div class="twocol">
+    <div class="card">
+      <h4 style="margin-top:0">In scope</h4>
+      {% for e in scope_in %}<span class="chip mono">{{ e }}</span>{% else %}<span class="muted">No scope recorded.</span>{% endfor %}
+      {% if scope_ex %}
+      <h4>Excluded</h4>
+      {% for e in scope_ex %}<span class="chip mono">{{ e }}</span>{% endfor %}
+      {% endif %}
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">Hosts assessed ({{ hosts|length }})</h4>
+      {% for h in hosts[:40] %}<span class="chip mono">{{ h }}</span>{% else %}<span class="muted">n/a</span>{% endfor %}
+      {% if hosts|length > 40 %}<span class="muted small">+ {{ hosts|length - 40 }} more</span>{% endif %}
+    </div>
+  </div>
+
+  <h4>Tools used</h4>
+  {% for tool, n in tools %}<span class="chip mono">{{ tool }} <span class="muted">×{{ n }}</span></span>{% else %}<p class="muted">No tool activity recorded.</p>{% endfor %}
+
+  <h4>Method</h4>
+  <p>Every command the tester ran was recorded with its full output, working directory, exit code and
+  timestamp by PwnTrail. Scanner results were imported and de-duplicated into findings. Each piece of evidence
+  was hashed (SHA-256) into a tamper-evident chain of custody, summarised in Appendix C.
+  {% if redacted %}Credentials, tokens and keys were automatically redacted from the recorded evidence.{% endif %}</p>
+
+  {% if scope_incidents %}
+  <h4>Scope control</h4>
+  <p>The scope guard intercepted {{ scope_incidents|length }} command{{ "s" if scope_incidents|length != 1 }} that referenced
+  targets outside the agreed scope:</p>
+  <table>
+    <thead><tr><th style="width:120px">Time</th><th style="width:90px">Action</th><th>Detail</th></tr></thead>
+    <tbody>
+    {% for e in scope_incidents %}
+      <tr><td class="small">{{ e.ts|dt("%d %b %H:%M:%S") }}</td>
+          <td>{% if e.kind == "scope_block" %}<span class="ok">Blocked</span>{% else %}<span class="tx-high">Allowed</span>{% endif %}</td>
+          <td class="mono small">{{ e.text }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+<!-- ============ FINDINGS ============ -->
+{% if findings %}
+<section class="break">
+  <h2 class="section">3. Findings</h2>
+  {% for f in findings %}
+  <div class="finding">
+    <div class="fhead bl-{{ f.severity }}">
+      <div class="ref">{{ f.ref }} · {{ f.source|upper }}</div>
+      <h3>{{ f.title }}</h3>
+      <div class="facts">
+        <div><span class="lbl">Severity</span><span class="sev sev-{{ f.severity }}">{{ sev_label[f.severity] }}</span></div>
+        <div><span class="lbl">Target</span><b class="mono">{{ f.target or "n/a" }}</b></div>
+        <div><span class="lbl">{% if f.cvss %}CVSS{% else %}Reference{% endif %}</span><b>{{ f.cvss or (f.cves|join(", ")) or "n/a" }}</b></div>
+      </div>
+    </div>
+
+    {% if f.description %}
+    <h4>Description</h4>
+    <p class="desc">{{ f.description }}</p>
+    {% endif %}
+
+    {% if f.cves and f.cvss %}<p class="small muted">CVE: {{ f.cves|join(", ") }}</p>{% endif %}
+
+    {% if f.matched_at %}
+    <h4>Affected</h4>
+    <ul class="plain mono small">{% for m in f.matched_at[:15] %}<li>{{ m }}</li>{% endfor %}</ul>
+    {% if f.matched_at|length > 15 %}<p class="small muted">+ {{ f.matched_at|length - 15 }} more locations</p>{% endif %}
+    {% endif %}
+
+    {% if f.commands or f.shots or f.extracted %}
+    <h4>Evidence</h4>
+    {% for c in f.commands %}
+      <div class="evhead">Command #{{ c.id }} · {{ c.started|dt("%d %b %Y %H:%M:%S") }}{% if c.exit_code is not none %} · exit {{ c.exit_code }}{% endif %}</div>
+      <pre><span class="prompt">$</span> {{ c.command }}{% if c.output %}
+
+{{ c.output }}{% endif %}</pre>
+      {% if c.cut %}<div class="small muted">Output shortened. Full output is in the case evidence (command #{{ c.id }}).</div>{% endif %}
+    {% endfor %}
+    {% if f.extracted %}
+      <div class="evhead">Extracted by the scanner</div>
+      <pre>{{ f.extracted|join("\n") }}</pre>
+    {% endif %}
+    {% for s in f.shots %}
+      <div class="shot"><img src="{{ s.src }}" alt="Screenshot {{ s.id }}">
+        <div class="cap">Screenshot #{{ s.id }}{% if s.note %} · {{ s.note }}{% endif %} · {{ s.ts|dt("%d %b %H:%M:%S") }} · <span class="hash">sha256 {{ s.sha256[:16] }}…</span></div></div>
+    {% endfor %}
+    {% endif %}
+
+    <h4>Remediation</h4>
+    <div class="fix">{{ f.remediation or "Validate the issue and apply the vendor's recommended fix." }}</div>
+
+    {% if f.refs %}
+    <h4>References</h4>
+    <ul class="plain small">{% for r in f.refs[:8] %}<li><a href="{{ r }}">{{ r }}</a></li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- ============ ATTACK SURFACE ============ -->
+{% if services or endpoints %}
+<section class="break">
+  <h2 class="section">4. Attack surface</h2>
+  {% if services %}
+  <h4 style="margin-top:0">Open services ({{ services|length }})</h4>
+  <table>
+    <thead><tr><th>Host</th><th style="width:80px">Port</th><th>Service</th><th>Product / version</th></tr></thead>
+    <tbody>
+    {% for s in services %}
+      <tr><td class="mono small">{{ s.host }}{% if s.hostname %}<br><span class="muted">{{ s.hostname }}</span>{% endif %}</td>
+          <td class="mono small">{{ s.port }}/{{ s.proto }}</td><td>{{ s.service }}</td>
+          <td class="small">{{ s.product }} {{ s.version }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if endpoints %}
+  <h4>Discovered web content ({{ endpoints|length }})</h4>
+  <table>
+    <thead><tr><th>URL</th><th style="width:70px">Status</th><th style="width:80px">Size</th></tr></thead>
+    <tbody>
+    {% for e in endpoints[:200] %}
+      <tr><td class="mono small">{{ e.url }}</td><td class="mono small">{{ e.status }}</td><td class="mono small">{{ e.length or "" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if endpoints|length > 200 %}<p class="small muted">Showing 200 of {{ endpoints|length }}.</p>{% endif %}
+  {% endif %}
+</section>
+{% endif %}
+
+<!-- ============ APPENDICES ============ -->
+<section class="break">
+  <h2 class="section">Appendix A · Activity log</h2>
+  {% if commands %}
+  <p class="small muted">{{ commands|length }} commands recorded. Full output for every command is preserved in the case file.</p>
+  <table>
+    <thead><tr><th style="width:44px">#</th><th style="width:96px">Time</th><th>Command</th><th style="width:40px">Exit</th></tr></thead>
+    <tbody>
+    {% for c in commands %}
+      <tr><td class="mono small">{{ c.id }}</td><td class="small">{{ c.started|dt("%d %b %H:%M:%S") }}</td>
+          <td class="mono small">{{ c.command }}</td>
+          <td class="mono small {% if c.exit_code and c.exit_code != 0 %}tx-high{% endif %}">{{ c.exit_code if c.exit_code is not none else "" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No commands were recorded.</p>{% endif %}
+</section>
+
+{% if notes %}
+<section>
+  <h2 class="section">Appendix B · Tester notes</h2>
+  <table>
+    <thead><tr><th style="width:120px">Time</th><th>Note</th><th style="width:140px">Target</th></tr></thead>
+    <tbody>
+    {% for n in notes %}
+      <tr><td class="small">{{ n.ts|dt("%d %b %H:%M:%S") }}</td><td>{{ n.text }}</td><td class="mono small">{{ n.target }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section>
+  <h2 class="section">Appendix C · Evidence integrity</h2>
+  <p>Integrity check at report time:
+    {% if integrity_ok %}<span class="ok">PASSED</span>, all {{ custody_count }} custody entries and evidence files match their recorded hashes.
+    {% else %}<span class="bad">FAILED</span>, the evidence has been modified since it was recorded:{% endif %}</p>
+  {% if not integrity_ok %}<ul class="plain small">{% for p in integrity_problems %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+  <p class="small">Chain head (SHA-256):<br><span class="hash">{{ chain_head }}</span></p>
+  {% if evidence_files %}
+  <table>
+    <thead><tr><th style="width:110px">Type</th><th>File</th><th>SHA-256</th></tr></thead>
+    <tbody>
+    {% for e in evidence_files %}
+      <tr><td class="small">{{ e.kind }}</td><td class="mono small">{{ e.path }}</td><td class="hash">{{ e.sha256 }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <p class="small muted">Re-check at any time with <code>pwntrail verify</code> inside the case.</p>
+</section>
+
+</div>
+</body>
+</html>
