@@ -13,7 +13,7 @@ PwnTrail stores sensitive engagement data, so security bugs in it matter.
 Please **do not open a public issue** for security problems.
 
 Report privately through [GitHub Security Advisories](https://github.com/beworkall/pwntrail/security/advisories/new)
-or by email to **beworkall07@gmail.com** with:
+with:
 
 - a description of the issue and its impact
 - steps to reproduce (a minimal case file or command sequence helps)

@@ -1,7 +1,7 @@
 <h1 align="center">● PwnTrail</h1>
 
 <p align="center">
-  <b>Record your pentest while you hack. Get the evidence timeline and the report for free.</b>
+  <b>Record your pentest as you work. Get the evidence timeline and the report automatically.</b>
 </p>
 
 <p align="center">
@@ -15,10 +15,10 @@
 
 ---
 
-Report writing is the worst part of every engagement. You hack for 3 days, then spend 2 more digging through
+Report writing is the slowest part of every engagement. Testing takes 3 days, then 2 more go into digging through
 terminal scrollback, re-running commands for screenshots and copy-pasting scanner output into Word.
 
-**PwnTrail fixes that.** Run `pwntrail start` and hack like normal. Every command, its full output, exit code,
+**PwnTrail fixes that.** Run `pwntrail start` and work as usual. Every command, its full output, exit code,
 working directory and timestamp are recorded silently. Import your scans, and one command later you have a
 client-ready report where every finding is backed by the exact command that proved it.
 
@@ -38,8 +38,8 @@ client-ready report where every finding is backed by the exact command that prov
 ## Install
 
 ```bash
-pipx install pwntrail            # recommended
-pipx inject pwntrail weasyprint  # optional: PDF export
+pipx install git+https://github.com/beworkall/pwntrail   # recommended
+pipx inject pwntrail weasyprint                          # optional: PDF export
 
 # or from source
 git clone https://github.com/beworkall/pwntrail && cd pwntrail
@@ -54,7 +54,7 @@ Works on **Kali, Parrot, Ubuntu, Debian, Arch, macOS** and **Windows through WSL
 # 1. new engagement with its scope (! = excluded)
 pwntrail new acme-web --scope 10.10.10.0/24,acme.htb,!10.10.10.13 --client "Acme Corp" --tester you
 
-# 2. start recording, then just hack
+# 2. start recording, then work as usual
 pwntrail start
 ● pwntrail:acme-web $ nmap -sC -sV -oX nmap.xml 10.10.10.5
 ● pwntrail:acme-web $ nuclei -u http://10.10.10.5 -jsonl -o nuclei.jsonl

@@ -1,11 +1,11 @@
 [build-system]
-requires = ["hatchling>=1.21"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
 name = "pwntrail"
 version = "0.1.0"
-description = "Record your pentest while you hack. Get the evidence timeline and the report for free."
+description = "Record your pentest as you work. Get the evidence timeline and the report automatically."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -38,6 +38,8 @@ pwntrail = "pwntrail.cli:main"
 [project.urls]
 Homepage = "https://github.com/beworkall/pwntrail"
 Issues = "https://github.com/beworkall/pwntrail/issues"
+Changelog = "https://github.com/beworkall/pwntrail/blob/main/CHANGELOG.md"
+Source = "https://github.com/beworkall/pwntrail"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pwntrail"]

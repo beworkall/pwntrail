@@ -25,7 +25,7 @@ from .scope import ScopeError, parse_scope
 
 app = typer.Typer(
     name="pwntrail",
-    help="Record your pentest while you hack. Get the evidence timeline and the report for free.",
+    help="Record your pentest as you work. Get the evidence timeline and the report automatically.",
     no_args_is_help=True,
     add_completion=False,
     rich_markup_mode="rich",
@@ -572,11 +572,21 @@ def finding_rm(fid: int = typer.Argument(...)) -> None:
 
 # ======================================================================= outputs
 def _open(path: Path) -> None:
-    url = path.resolve().as_uri()
+    import shutil
+    import subprocess
+
+    path = path.resolve()
+    quiet = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
     if os.environ.get("WSL_DISTRO_NAME"):
-        os.system(f"wslview '{path}' >/dev/null 2>&1 || explorer.exe \"$(wslpath -w '{path}')\" >/dev/null 2>&1")
-    else:
-        webbrowser.open(url)
+        # no shell involved, so odd characters in a case name can't break out
+        if shutil.which("wslview"):
+            subprocess.run(["wslview", str(path)], **quiet)
+            return
+        if shutil.which("wslpath") and shutil.which("explorer.exe"):
+            win = subprocess.run(["wslpath", "-w", str(path)], capture_output=True, text=True).stdout.strip()
+            subprocess.run(["explorer.exe", win], **quiet)
+            return
+    webbrowser.open(path.as_uri())
 
 
 @app.command()
