@@ -1,0 +1,43 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Don't paste real client data, credentials or scan results. Security issues go to SECURITY.md, not here."
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. pwntrail new test --scope 10.10.10.0/24
+        2. pwntrail start
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: PwnTrail version
+      placeholder: "pwntrail --version"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS and shell
+      placeholder: "Kali 2026.3, zsh 5.9 / WSL2 Ubuntu 24.04, bash 5.2"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output / traceback
+      render: shell

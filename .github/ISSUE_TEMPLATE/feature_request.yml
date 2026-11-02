@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an importer, report section, shell or workflow improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the part of your engagement workflow that's painful today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like PwnTrail to do?
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample input (for new importers)
+      description: A small, sanitised sample file of the tool's output format.
+      render: text
